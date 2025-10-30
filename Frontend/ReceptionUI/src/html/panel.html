@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистратура — панель</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="page-centered">
+<div class="card wide">
+    <div class="header-row">
+        <h1 class="card__title">Регистратура</h1>
+        <button id="logoutBtn" class="btn-secondary small">Выйти</button>
+    </div>
+
+    <section style="margin-bottom:24px;">
+        <h2 class="card__title" style="font-size:1rem; margin-bottom:12px;">Добавить пациента</h2>
+
+        <div class="form-group">
+            <label for="firstName">Имя</label>
+            <input id="firstName" type="text" placeholder="Иван">
+        </div>
+
+        <div class="form-group">
+            <label for="middleName">Отчество (необязательно)</label>
+            <input id="middleName" type="text" placeholder="Иванович">
+        </div>
+
+        <div class="form-group">
+            <label for="lastName">Фамилия</label>
+            <input id="lastName" type="text" placeholder="Иванов">
+        </div>
+
+        <div class="form-group">
+            <label for="birthDate">Дата рождения</label>
+            <input id="birthDate" type="date">
+        </div>
+
+        <button id="createBtn" class="btn-primary">Создать пациента</button>
+    </section>
+
+    <hr style="border:0; border-top:1px solid #334155; margin:24px 0;">
+
+    <section style="margin-bottom:24px;">
+        <h2 class="card__title" style="font-size:1rem; margin-bottom:12px;">Удалить пациента</h2>
+
+        <div class="form-group">
+            <label for="deleteId">ID пациента</label>
+            <input id="deleteId" type="number" min="1" placeholder="Например: 3">
+        </div>
+
+        <button id="deleteBtn" class="btn-primary">Удалить пациента</button>
+    </section>
+
+    <p id="status" class="status-text"></p>
+</div>
+
+<script src="../js/reception-panel.js"></script>
+</body>
+</html>
