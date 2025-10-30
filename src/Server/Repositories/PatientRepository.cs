@@ -1,36 +1,44 @@
-﻿using Server.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Server.Database;
+using Server.Models;
 
 namespace Server.Repositories;
 
 public class PatientRepository : IPatientRepository
 {
-    private readonly List<Patient> _patients = new();
-    private long _nextId = 1;
+    private readonly ApplicationDbContext _dbContext;
 
-    public long CreatePatient(Patient patient, CancellationToken token)
+    public PatientRepository(ApplicationDbContext  dbContext)
     {
-        patient.Id = _nextId++;
-        _patients.Add(patient);
-        return patient.Id;
+        _dbContext = dbContext;
     }
 
-    public Patient? GetPatient(long id, CancellationToken token)
+    public async Task<long> CreatePatient(Patient patient, CancellationToken token)
     {
-        return _patients.FirstOrDefault(p => p.Id == id);
+        var res = await _dbContext.Patients.AddAsync(patient, token);
+        await _dbContext.SaveChangesAsync(token);
+        return res.Entity.Id;
     }
 
-    public IEnumerable<Patient> GetPatients(CancellationToken token)
+    public async Task<Patient?> GetPatient(long id, CancellationToken token)
     {
-        return _patients.ToList();
+        var patient = await _dbContext.Patients.FirstOrDefaultAsync(p => p.Id == id, token);
+        return patient;
     }
 
-    public bool DeletePatient(long id, CancellationToken token)
+    public async Task<IEnumerable<Patient>> GetPatients(CancellationToken token)
     {
-        var patient = _patients.FirstOrDefault(p => p.Id == id);
+        return await _dbContext.Patients.ToListAsync(token);
+    }
+
+    public async Task<bool> DeletePatient(long id, CancellationToken token)
+    {
+        var patient = await _dbContext.Patients.FirstOrDefaultAsync(p => p.Id == id, token);
         if (patient == null)
             return false;
 
-        _patients.Remove(patient);
+        _dbContext.Patients.Remove(patient);
+        await _dbContext.SaveChangesAsync(token);
         return true;
     }
 }

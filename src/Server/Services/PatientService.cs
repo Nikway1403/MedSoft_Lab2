@@ -13,7 +13,7 @@ public class PatientService : IPatientService
         _patientRepository = patientRepository;
     }
 
-    public PatientDto CreatePatient(PatientDto dto, CancellationToken token)
+    public async Task<PatientDto> CreatePatient(PatientDto dto, CancellationToken token)
     {
         var model = new Patient
         {
@@ -23,7 +23,7 @@ public class PatientService : IPatientService
             DateOfBirth = dto.DateOfBirth,
         };
 
-        var newId = _patientRepository.CreatePatient(model, token);
+        var newId = await _patientRepository.CreatePatient(model, token);
 
         return new PatientDto
         {
@@ -35,9 +35,9 @@ public class PatientService : IPatientService
         };
     }
 
-    public PatientDto? GetPatient(long id, CancellationToken token)
+    public async Task<PatientDto?> GetPatient(long id, CancellationToken token)
     {
-        var patient = _patientRepository.GetPatient(id, token);
+        var patient = await _patientRepository.GetPatient(id, token);
         if (patient == null) return null;
 
         return new PatientDto
@@ -50,22 +50,22 @@ public class PatientService : IPatientService
         };
     }
 
-    public IEnumerable<PatientDto> GetAllPatients(CancellationToken token)
+    public async Task<IEnumerable<PatientDto>> GetAllPatients(CancellationToken token)
     {
-        return _patientRepository
-            .GetPatients(token)
-            .Select(p => new PatientDto
-            {
-                Id = p.Id,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                MiddleName = p.MiddleName,
-                DateOfBirth = p.DateOfBirth
-            });
+        var patients = await _patientRepository.GetPatients(token);
+
+        return patients.Select(p => new PatientDto
+        {
+            Id = p.Id,
+            FirstName = p.FirstName,
+            LastName = p.LastName,
+            MiddleName = p.MiddleName,
+            DateOfBirth = p.DateOfBirth
+        });
     }
 
-    public bool DeletePatient(long id, CancellationToken token)
+    public async Task<bool> DeletePatient(long id, CancellationToken token)
     {
-        return _patientRepository.DeletePatient(id, token);
+        return await _patientRepository.DeletePatient(id, token);
     }
 }

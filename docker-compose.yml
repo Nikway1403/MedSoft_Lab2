@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: his-db
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1403"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - hisnet
+
+  his-srv:
+    build:
+      context: ./src/Server
+      dockerfile: Dockerfile
+    container_name: his-srv
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      DatabaseOptions__ConnectionString: "Host=db;Port=5432;Database=postgres;Username=postgres;Password=1403"
+    ports:
+      - "5001:5001"
+    networks:
+      - hisnet
+
+  reception-ui:
+    build:
+      context: ./Frontend/ReceptionUI
+      dockerfile: Dockerfile
+    container_name: reception-ui
+    depends_on:
+      - his-srv
+    ports:
+      - "8080:80"
+    networks:
+      - hisnet
+
+  chief-ui:
+    build:
+      context: ./Frontend/HospitalChiefUI
+      dockerfile: Dockerfile
+    container_name: chief-ui
+    depends_on:
+      - his-srv
+    ports:
+      - "8081:80"
+    networks:
+      - hisnet
+
+networks:
+  hisnet:
+
+volumes:
+  dbdata:

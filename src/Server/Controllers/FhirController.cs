@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Server.Dtos;
 using Server.Services;
 
@@ -16,6 +17,7 @@ public class FhirController : ControllerBase
     }
     
     [HttpPost("patient")]
+    [Authorize(Policy = "ReceptionOnly")]
     public async Task<IActionResult> CreatePatient(CancellationToken token)
     {
         var result = await _fhirService.CreatePatientFromFhirAsync(Request, token);
@@ -23,16 +25,30 @@ public class FhirController : ControllerBase
     }
 
     [HttpDelete("patient/{id:long}")]
-    public IActionResult DeletePatient(long id, CancellationToken token)
+    [Authorize(Policy = "ReceptionOnly")]
+    public async Task<IActionResult> DeletePatient(long id, CancellationToken token)
     {
-        var result = _fhirService.DeletePatient(id, token);
+        var result = await _fhirService.DeletePatient(id, token);
         return Ok(result);
     }
 
     [HttpGet("patients")]
-    public IActionResult GetAllPatients(CancellationToken token)
+    [Authorize(Policy = "ChiefOnly")]
+    public async Task<IActionResult> GetAllPatients(CancellationToken token)
     {
-        var bundle = _fhirService.GetAllPatientsAsFhirBundle(token);
+        var user = HttpContext.User;
+        var id = user?.Identity;
+
+        Console.WriteLine("=== /fhir/patients request ===");
+        Console.WriteLine("IsAuthenticated: " + (id?.IsAuthenticated ?? false));
+        Console.WriteLine("AuthType: " + (id?.AuthenticationType ?? "<null>"));
+        Console.WriteLine("Claims:");
+        foreach (var c in user.Claims)
+        {
+            Console.WriteLine($"  {c.Type} = {c.Value}");
+        }
+        Console.WriteLine("=============================");
+        var bundle = await _fhirService.GetAllPatientsAsFhirBundle(token);
         return Ok(bundle);
     }
     

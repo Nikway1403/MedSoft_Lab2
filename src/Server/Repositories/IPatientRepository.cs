@@ -4,11 +4,11 @@ namespace Server.Repositories;
 
 public interface IPatientRepository
 {
-    long CreatePatient(Patient patient, CancellationToken token);
+    Task<long> CreatePatient(Patient patient, CancellationToken token);
     
-    Patient GetPatient(long id, CancellationToken token);
+    Task<Patient?> GetPatient(long id, CancellationToken token);
     
-    IEnumerable<Patient> GetPatients(CancellationToken token);
+    Task<IEnumerable<Patient>> GetPatients(CancellationToken token);
     
-    bool DeletePatient(long id, CancellationToken token);
+    Task<bool>  DeletePatient(long id, CancellationToken token);
 }

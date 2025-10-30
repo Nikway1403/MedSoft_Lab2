@@ -63,13 +63,13 @@ public class FhirService : IFhirService
             );
         }
 
-        var created = _patientService.CreatePatient(
+        var created = await _patientService.CreatePatient(
             new PatientDto
             {
                 FirstName   = given0,
                 MiddleName  = given1,
                 LastName    = lastName,
-                DateOfBirth = birthDateParsed
+                DateOfBirth = DateTime.SpecifyKind(birthDateParsed, DateTimeKind.Utc)
             },
             token
         );
@@ -81,9 +81,9 @@ public class FhirService : IFhirService
         );
     }
     
-    public object DeletePatient(long id, CancellationToken token)
+    public async Task<object> DeletePatient(long id, CancellationToken token)
     {
-        var ok = _patientService.DeletePatient(id, token);
+        var ok = await _patientService.DeletePatient(id, token);
 
         if (!ok)
         {
@@ -101,9 +101,9 @@ public class FhirService : IFhirService
         );
     }
 
-    public object GetAllPatientsAsFhirBundle(CancellationToken token)
+    public async Task<object> GetAllPatientsAsFhirBundle(CancellationToken token)
     {
-        var all = _patientService.GetAllPatients(token);
+        var all = await _patientService.GetAllPatients(token);
 
         var bundle = new
         {

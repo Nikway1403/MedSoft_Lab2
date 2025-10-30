@@ -40,9 +40,9 @@ public class PatientsController : ControllerBase
     }
 
     [HttpDelete("{id:long}")]
-    public IActionResult Delete(long id, CancellationToken token)
+    public async Task<IActionResult> Delete(long id, CancellationToken token)
     {
-        var ok = _service.DeletePatient(id, token);
+        var ok = await _service.DeletePatient(id, token);
         if (!ok)
             return NotFound();
 

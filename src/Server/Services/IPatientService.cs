@@ -4,11 +4,11 @@ namespace Server.Services;
 
 public interface IPatientService
 {
-    PatientDto CreatePatient(PatientDto patient, CancellationToken token);
+    Task<PatientDto> CreatePatient(PatientDto patient, CancellationToken token);
 
-    PatientDto? GetPatient(long id, CancellationToken token);
+    Task<PatientDto?> GetPatient(long id, CancellationToken token);
 
-    IEnumerable<PatientDto> GetAllPatients(CancellationToken token);
+    Task<IEnumerable<PatientDto>> GetAllPatients(CancellationToken token);
 
-    bool DeletePatient(long id, CancellationToken token);
+    Task<bool> DeletePatient(long id, CancellationToken token);
 }
