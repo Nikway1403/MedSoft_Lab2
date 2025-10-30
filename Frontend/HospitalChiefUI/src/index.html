@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Hospital Chief UI</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="header__content">
+        <h1 class="logo">Hospital Chief UI</h1>
+        <nav class="nav">
+            <a href="html/login.html" class="nav__link">Вход</a>
+        </nav>
+    </div>
+</header>
+
+<main class="page-centered">
+    <div class="card">
+        <h2 class="card__title">Добро пожаловать</h2>
+        <p>Это интерфейс главврача.
+            Для входа используйте кнопку <strong>«Вход»</strong> в правом верхнем углу.</p>
+    </div>
+    <button id="viewMessagesBtn">Показать FHIR-сообщения</button>
+    <pre id="messagesList" style="white-space: pre-wrap; color: #ccc;"></pre>
+</main>
+<script src="js/message.js"></script>
+</body>
+</html>
