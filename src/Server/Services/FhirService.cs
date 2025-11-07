@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Mvc;
 using Server.Dtos;
+using Server.Models;
 using Server.Repositories;
 
 namespace Server.Services;
@@ -8,11 +10,14 @@ public class FhirService : IFhirService
 {
     private readonly IFhirMessageRepository _fhirRepo;
     private readonly IPatientService _patientService;
+    private readonly ILogger<FhirService> _logger;
 
     public FhirService(
+        ILogger<FhirService> logger,
         IFhirMessageRepository fhirRepo,
         IPatientService patientService)
     {
+        _logger = logger;
         _fhirRepo = fhirRepo;
         _patientService = patientService;
     }
@@ -23,8 +28,12 @@ public class FhirService : IFhirService
         request.Body.Position = 0;
         using var reader = new StreamReader(request.Body);
         var rawJson = await reader.ReadToEndAsync(token);
+        
+        var receivedAt = DateTime.UtcNow;
+        
+        _logger.LogInformation("FHIR message received at {ts}: {json}", receivedAt, rawJson);
 
-        _fhirRepo.AddMessage(rawJson, DateTime.UtcNow);
+        await _fhirRepo.AddMessage(rawJson, DateTime.UtcNow, token);
 
         JsonNode? root;
         try
@@ -33,7 +42,7 @@ public class FhirService : IFhirService
         }
         catch (Exception ex)
         {
-            return BuildOperationOutcome(
+            return BuildOperationOutcome(400,
                 severity: "error",
                 code: "invalid",
                 diagnostics: $"Invalid JSON: {ex.Message}"
@@ -42,7 +51,7 @@ public class FhirService : IFhirService
 
         if (root?["resourceType"]?.ToString() != "Patient")
         {
-            return BuildOperationOutcome(
+            return BuildOperationOutcome(400,
                 severity: "error",
                 code: "invalid",
                 diagnostics: "resourceType must be 'Patient'"
@@ -56,13 +65,17 @@ public class FhirService : IFhirService
 
         if (!DateTime.TryParse(birthDate, out var birthDateParsed))
         {
-            return BuildOperationOutcome(
+            return BuildOperationOutcome(400,
                 severity: "error",
                 code: "invalid",
                 diagnostics: "birthDate is missing or invalid"
             );
         }
-
+        
+        var count = (await _patientService.GetAllPatients(token)).Count();
+        if (count >= 10)
+            return BuildOperationOutcome(409, "error", "too-many", "Patient limit reached (10)");
+        
         var created = await _patientService.CreatePatient(
             new PatientDto
             {
@@ -74,7 +87,7 @@ public class FhirService : IFhirService
             token
         );
 
-        return BuildOperationOutcome(
+        return BuildOperationOutcome(201,
             severity: "information",
             code: "informational",
             diagnostics: $"Patient created with id {created.Id}"
@@ -87,14 +100,14 @@ public class FhirService : IFhirService
 
         if (!ok)
         {
-            return BuildOperationOutcome(
+            return BuildOperationOutcome(404,
                 severity: "error",
                 code: "not-found",
                 diagnostics: $"Patient {id} not found"
             );
         }
 
-        return BuildOperationOutcome(
+        return BuildOperationOutcome(204,
             severity: "information",
             code: "informational",
             diagnostics: $"Patient {id} deleted"
@@ -129,27 +142,37 @@ public class FhirService : IFhirService
             })
         };
 
-        return bundle;
+        return new JsonResult(bundle)
+        {
+            StatusCode = 200,
+            ContentType = "application/fhir+json"
+        };
     }
 
-    public IEnumerable<FhirStoredMessageDto> GetMessages(CancellationToken token)
+    public async Task<IEnumerable<FhirLog>> GetMessages(CancellationToken token)
     {
-        return _fhirRepo.GetMessages(token);
+        return await _fhirRepo.GetMessages(token);
     }
 
-    private object BuildOperationOutcome(string severity, string code, string diagnostics)
+    private object BuildOperationOutcome(int statusCode, string severity, string code, string diagnostics)
     {
-        return new
+        var outcome = new
         {
             resourceType = "OperationOutcome",
             issue = new[]
             {
                 new {
-                    severity = severity,
-                    code = code,
-                    diagnostics = diagnostics
+                    severity,
+                    code,
+                    diagnostics
                 }
             }
+        };
+
+        return new JsonResult(outcome)
+        {
+            StatusCode = statusCode,
+            ContentType = "application/fhir+json"
         };
     }
 }

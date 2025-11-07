@@ -1,4 +1,5 @@
 ﻿using Server.Dtos;
+using Server.Models;
 
 namespace Server.Services;
 
@@ -10,5 +11,5 @@ public interface IFhirService
 
     Task<object> GetAllPatientsAsFhirBundle(CancellationToken token);
 
-    IEnumerable<FhirStoredMessageDto> GetMessages(CancellationToken token);
+    Task<IEnumerable<FhirLog>> GetMessages(CancellationToken token);
 }

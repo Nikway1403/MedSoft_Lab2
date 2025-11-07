@@ -1,22 +1,31 @@
-﻿using Server.Dtos;
+﻿using Microsoft.EntityFrameworkCore;
+using Server.Database;
+using Server.Models;
 
 namespace Server.Repositories;
 
 public class FhirMessageRepository : IFhirMessageRepository
 {
-    private readonly List<FhirStoredMessageDto> _messages = new();
+    private readonly ApplicationDbContext _context;
 
-    public void AddMessage(string rawJson, DateTime receivedAtUtc)
+    public FhirMessageRepository(ApplicationDbContext context)
     {
-        _messages.Add(new FhirStoredMessageDto
+        _context = context;
+    }
+
+    public async Task AddMessage(string rawJson, DateTime receivedAtUtc, CancellationToken token)
+    {
+        await _context.FhirLogs.AddAsync(new FhirLog
         {
             RawJson = rawJson,
             ReceivedAtUtc = receivedAtUtc
-        });
+        }, token);
+        
+        await _context.SaveChangesAsync(token);
     }
     
-    public IEnumerable<FhirStoredMessageDto> GetMessages(CancellationToken token)
+    public async Task<IEnumerable<FhirLog>> GetMessages(CancellationToken token)
     {
-        return _messages.ToList();
+        return await _context.FhirLogs.ToListAsync(token);
     }
 }

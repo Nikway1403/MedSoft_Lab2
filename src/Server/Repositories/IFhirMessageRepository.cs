@@ -1,10 +1,10 @@
-﻿using Server.Dtos;
+﻿using Server.Models;
 
 namespace Server.Repositories;
 
 public interface IFhirMessageRepository
 {
-    void AddMessage(string rawJson, DateTime receivedAtUtc);
+    Task AddMessage(string rawJson, DateTime receivedAtUtc , CancellationToken token);
 
-    IEnumerable<FhirStoredMessageDto> GetMessages(CancellationToken token);
+    Task<IEnumerable<FhirLog>> GetMessages(CancellationToken token);
 }

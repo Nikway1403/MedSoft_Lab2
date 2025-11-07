@@ -58,7 +58,7 @@ public static class CustomExtension
         services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddScoped<IPatientService, PatientService>();
         
-        services.AddSingleton<IFhirMessageRepository, FhirMessageRepository>();
+        services.AddScoped<IFhirMessageRepository, FhirMessageRepository>();
         services.AddScoped<IFhirService, FhirService>();
         
         services.AddHostedService<MigrationBackgroundService>();
